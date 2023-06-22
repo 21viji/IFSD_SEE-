@@ -1,0 +1,96 @@
+const prompt = require('prompt-sync')();
+const { MongoClient } = require('mongodb');
+
+class ShoppingComplex {
+  constructor() {
+    this.shops = [];
+  }
+
+  addShop(shop) {
+    this.shops.push(shop);
+  }
+
+  async retrieveShopsFromDatabase() {
+    const uri = ""; // MongoDB connection URI
+    const client = new MongoClient(uri);
+
+    try {
+      await client.connect();
+      const database = client.db('shopping_complex');
+      const collection = database.collection('shops');
+
+      const shops = await collection.find().toArray();
+      this.shops = shops;
+    } catch (err) {
+      console.error('Error retrieving shops from the database:', err);
+    } finally {
+      client.close();
+    }
+  }
+
+  async saveShopsToDatabase() {
+    const uri = ""; // MongoDB connection URI
+    const client = new MongoClient(uri);
+
+    try {
+      await client.connect();
+      const database = client.db('shopping_complex');
+      const collection = database.collection('shops');
+
+      await collection.deleteMany({}); // Clear existing data
+
+      for (const shop of this.shops) {
+        await collection.insertOne(shop);
+      }
+    } catch (err) {
+      console.error('Error saving shops to the database:', err);
+    } finally {
+      client.close();
+    }
+  }
+
+  calculateTotalRent() {
+    let totalRent = 0;
+    for (const shop of this.shops) {
+      totalRent += shop.rent;
+    }
+    return totalRent;
+  }
+}
+
+class Shop {
+  constructor(name, rent) {
+    this.name = name;
+    this.rent = rent;
+  }
+}
+
+async function main() {
+  const shoppingComplex = new ShoppingComplex();
+
+  // Prompt the user for the number of shops
+  const numOfShops = parseInt(prompt("Enter the number of shops:"));
+
+  // Create and add shops to the shopping complex based on user input
+  for (let i = 1; i <= numOfShops; i++) {
+    const name = prompt(`Enter the name of Shop ${i}:`);
+    const rent = parseInt(prompt(`Enter the rent of Shop ${i}:`));
+
+    const shop = new Shop(name, rent);
+    shoppingComplex.addShop(shop);
+  }
+
+  // Save shops to the database
+  await shoppingComplex.saveShopsToDatabase();
+  console.log('Shops saved to the database.');
+
+  // Retrieve shops from the database
+  await shoppingComplex.retrieveShopsFromDatabase();
+  console.log('Shops retrieved from the database.');
+
+  // Calculate and display the total rent of all the shops
+  const totalRent = shoppingComplex.calculateTotalRent();
+  console.log("Total rent of all shops:", totalRent);
+}
+
+main();
