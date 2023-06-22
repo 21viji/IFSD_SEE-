@@ -1,0 +1,47 @@
+const prompt = require('prompt-sync')();
+class ShoppingComplex {
+    constructor() {
+      this.shops = [];
+    }
+  
+    addShop(shop) {
+      this.shops.push(shop);
+    }
+  
+    calculateTotalRent() {
+      let totalRent = 0;
+      for (const shop of this.shops) {
+        totalRent += shop.rent;
+      }
+      return totalRent;
+    }
+  }
+  
+  class Shop {
+    constructor(name, rent) {
+      this.name = name;
+      this.rent = rent;
+    }
+  }
+  
+  function main() {
+    const shoppingComplex = new ShoppingComplex();
+  
+    // Prompt the user for the number of shops
+    const numOfShops = parseInt(prompt("Enter the number of shops:"));
+  
+    // Create and add shops to the shopping complex based on user input
+    for (let i = 1; i <= numOfShops; i++) {
+      const name = prompt(`Enter the name of Shop ${i}:`);
+      const rent = parseInt(prompt(`Enter the rent of Shop ${i}:`));
+  
+      const shop = new Shop(name, rent);
+      shoppingComplex.addShop(shop);
+    }
+  
+    // Calculate and display the total rent of all the shops
+    const totalRent = shoppingComplex.calculateTotalRent();
+    console.log("Total rent of all shops:", totalRent);
+  }
+  
+  main();
