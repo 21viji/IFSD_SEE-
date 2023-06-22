@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      const shopArray = [
+        { name: 'Shop A', rent: 100 },
+        { name: 'Shop B', rent: 200 },
+        { name: 'Shop C', rent: 150 }
+      ];
+
+      let editIndex = -1;
+
+      function addNewShop() {
+        const newShopName = document.getElementById('name-input').value;
+        const newShopRent = document.getElementById('rent-input').value;
+        
+        if (editIndex === -1) {
+          // Add new shop
+          const newShop = {
+            name: newShopName,
+            rent: parseInt(newShopRent)
+          };
+          shopArray.push(newShop);
+        } else {
+          // Update existing shop
+          const shopToUpdate = shopArray[editIndex];
+          shopToUpdate.name = newShopName;
+          shopToUpdate.rent = parseInt(newShopRent);
+          editIndex = -1;
+        }
+        
+        loadTable();
+        resetForm();
+      }
+
+      function deleteShop(index) {
+        shopArray.splice(index, 1);
+        loadTable();
+      }
+
+      function editShop(index) {
+        const shopToEdit = shopArray[index];
+        document.getElementById('name-input').value = shopToEdit.name;
+        document.getElementById('rent-input').value = shopToEdit.rent;
+        editIndex = index;
+      }
+
+      function resetForm() {
+        document.getElementById('name-input').value = '';
+        document.getElementById('rent-input').value = '';
+        editIndex = -1;
+      }
+
+      function loadTable() {
+        const tableElement = document.getElementById('table');
+        tableElement.innerHTML = '';
+
+        const headerRowElement = document.createElement('tr');
+        headerRowElement.appendChild(createElement('th', 'Index'));
+        headerRowElement.appendChild(createElement('th', 'Name'));
+        headerRowElement.appendChild(createElement('th', 'Rent'));
+        headerRowElement.appendChild(createElement('th', 'Action'));
+        tableElement.appendChild(headerRowElement);
+
+        for (let i = 0; i < shopArray.length; i++) {
+          const shop = shopArray[i];
+          const rowElement = document.createElement('tr');
+          rowElement.appendChild(createElement('td', i));
+          rowElement.appendChild(createElement('td', shop.name));
+          rowElement.appendChild(createElement('td', shop.rent));
+
+          const editButton = document.createElement('button');
+          editButton.innerText = 'Edit';
+          editButton.onclick = function() {
+            editShop(i);
+          };
+          rowElement.appendChild(createElement('td')).appendChild(editButton);
+
+          const deleteButton = document.createElement('button');
+          deleteButton.innerText = 'Delete';
+          deleteButton.onclick = function() {
+            deleteShop(i);
+          };
+          rowElement.appendChild(createElement('td')).appendChild(deleteButton);
+          tableElement.appendChild(rowElement);
+        }
+      }
+
+      function createElement(tag, text) {
+        const element = document.createElement(tag);
+        element.innerText = text;
+        return element;
+      }
+    </script>
+  </head>
+
+  <body onload="loadTable();">
+    <h1>Shopping Complex</h1>
+    <table id="table"></table>
+    <hr>
+    <div>
+      <h1>New Shop</h1>
+      Name: <input type="text" id="name-input" />
+      <br><br>
+      Rent: <input type="number" id="rent-input" />
+      <br><br>
+      <button onclick="addNewShop();">Add/Update</button>
+      <button onclick="resetForm();">Reset</button>
+    </div>
+  </body>
+</html>
