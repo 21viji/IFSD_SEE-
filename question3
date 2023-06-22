@@ -1,0 +1,160 @@
+const prompt = require('prompt-sync')();
+const mongoose = require('mongoose');
+
+// Connect to MongoDB
+mongoose.connect('mongodb+srv://vijayalakshmi:A8JcmNfGtO6OHOCR@clusterv.xz7jomt.mongodb.net/test?retryWrites=true&w=majority', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('Connected to MongoDB.');
+
+  // Shop schema
+  const shopSchema = new mongoose.Schema({
+    name: String,
+    rent: Number,
+  });
+
+  const Shop = mongoose.model('Shop', shopSchema);
+
+  class ShoppingComplex {
+    constructor() {
+      this.shops = [];
+    }
+
+    async addShop(shop) {
+      try {
+        const savedShop = await new Shop(shop).save();
+        this.shops.push(savedShop);
+        console.log('Shop added:', savedShop);
+      } catch (err) {
+        console.error('Error adding shop:', err);
+      }
+    }
+
+    async retrieveShopsFromDatabase() {
+      try {
+        const shops = await Shop.find({});
+        this.shops = shops;
+        console.log('Shops retrieved from the database:', shops);
+      } catch (err) {
+        console.error('Error retrieving shops from the database:', err);
+      }
+    }
+
+    async updateShop(shopId, updatedShopData) {
+      try {
+        const updatedShop = await Shop.findByIdAndUpdate(shopId, updatedShopData, { new: true });
+        console.log('Shop updated:', updatedShop);
+      } catch (err) {
+        console.error('Error updating shop:', err);
+      }
+    }
+
+    async deleteShop(shopId) {
+      try {
+        const deletedShop = await Shop.findByIdAndRemove(shopId);
+        console.log('Shop deleted:', deletedShop);
+      } catch (err) {
+        console.error('Error deleting shop:', err);
+      }
+    }
+
+    async loadTable() {
+      try {
+        const shops = await Shop.find({});
+        this.shops = shops;
+
+        const tableElement = document.getElementById('table');
+        tableElement.innerHTML = '';
+
+        const headerRowElement = document.createElement('tr');
+        headerRowElement.appendChild(createElement('th', 'ID'));
+        headerRowElement.appendChild(createElement('th', 'Name'));
+        headerRowElement.appendChild(createElement('th', 'Rent'));
+        headerRowElement.appendChild(createElement('th', 'Action'));
+        tableElement.appendChild(headerRowElement);
+
+        for (let i = 0; i < this.shops.length; i++) {
+          const shop = this.shops[i];
+          const rowElement = document.createElement('tr');
+          rowElement.appendChild(createElement('td', shop._id));
+          rowElement.appendChild(createElement('td', shop.name));
+          rowElement.appendChild(createElement('td', shop.rent));
+
+          const deleteButton = document.createElement('button');
+          deleteButton.innerText = 'Delete';
+          deleteButton.onclick = function() {
+            shoppingComplex.deleteShop(shop._id);
+          };
+          rowElement.appendChild(createElement('td')).appendChild(deleteButton);
+          tableElement.appendChild(rowElement);
+        }
+      } catch (err) {
+        console.error('Error loading table:', err);
+      }
+    }
+
+    calculateTotalRent() {
+      let totalRent = 0;
+      for (const shop of this.shops) {
+        totalRent += shop.rent;
+      }
+      return totalRent;
+    }
+  }
+
+  function createElement(tag, text) {
+    const element = document.createElement(tag);
+    element.innerText = text;
+    return element;
+  }
+
+  async function main() {
+    const shoppingComplex = new ShoppingComplex();
+
+    try {
+      // Prompt the user for the number of shops
+      const numOfShops = parseInt(prompt("Enter the number of shops:"));
+
+      // Create and add shops to the shopping complex based on user input
+      for (let i = 1; i <= numOfShops; i++) {
+        const name = prompt(`Enter the name of Shop ${i}:`);
+        const rent = parseInt(prompt(`Enter the rent of Shop ${i}:`));
+
+        const shop = { name, rent };
+        await shoppingComplex.addShop(shop);
+      }
+
+      // Retrieve the shops from the database
+      await shoppingComplex.retrieveShopsFromDatabase();
+
+      // Load the table with shop data
+      shoppingComplex.loadTable();
+
+      // Perform update and delete operations
+      const shopIdToDelete = prompt("Enter the ID of the shop to delete:");
+      await shoppingComplex.deleteShop(shopIdToDelete);
+
+      const shopIdToUpdate = prompt("Enter the ID of the shop to update:");
+      const updatedName = prompt("Enter the new name of the shop:");
+      const updatedRent = parseInt(prompt("Enter the new rent of the shop:"));
+      await shoppingComplex.updateShop(shopIdToUpdate, { name: updatedName, rent: updatedRent });
+
+      // Load the table again after the update and delete operations
+      shoppingComplex.loadTable();
+
+      // Calculate and display the total rent of all the shops
+      const totalRent = shoppingComplex.calculateTotalRent();
+      console.log("Total rent of all shops:", totalRent);
+    } catch (err) {
+      console.error('Error:', err);
+    } finally {
+      mongoose.connection.close();
+      console.log('Disconnected from MongoDB.');
+    }
+  }
+
+  main();
+}).catch((err) => {
+  console.error('Error connecting to MongoDB:', err);
+});
